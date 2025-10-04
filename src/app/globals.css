@@ -64,3 +64,9 @@ body {
   color: #0058cc;
   text-decoration: underline;
 }
+
+.dev-tools-indicator,
+.dev-tools-indicator-menu,
+[data-nextjs-toast] {
+  display: none !important;
+}
