@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Terminal Portfolio
 
-## Getting Started
+A cinematic, terminal-inspired portfolio experience that emulates connecting to a remote Mac host. Built with Next.js, xterm.js, and BrowserFS to provide a fully client-side shell, virtual filesystem, and Mac-style preview windows for portfolio content.
 
-First, run the development server:
+## Quick Start
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit http://localhost:3000 to launch the terminal. The boot sequence runs automatically and drops you at the root directory (`/`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## What You Can Do
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `help` lists the available simulated commands.
+- Press Tab to autocomplete or list suggestions during navigation.
+- Portfolio previews can be closed from the red titlebar control or by clicking the shaded backdrop.
+- `ls`, `cd`, `pwd`, `cat`, and `open` all support absolute paths, relative paths, `.`/`..`, and `~` expansion.
+- Navigate to the curated portfolio at `~/Desktop/portfolio` and use `open <file>.md` to reveal the Mac-style preview modal rendered from markdown.
+- Explore the simulated filesystem layout (system folders, applications, user directories). Non-portfolio files surface permission errors when opened.
+- `cat /READ_ME_FIRST.txt` hints at where the portfolio lives.
 
-## Learn More
+## Tech Stack
 
-To learn more about Next.js, take a look at the following resources:
+- Next.js (App Router, TypeScript)
+- @xterm/xterm for terminal emulation (+ fit addon)
+- BrowserFS with an IndexedDB backend for the virtual filesystem
+- `marked` for markdown-to-HTML rendering inside the preview modal
+- Tailwind-based styling for the terminal surface and modal chrome
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Architecture Notes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `src/lib/vfs.ts`: Initializes BrowserFS, seeds the filesystem, and exposes helper methods for file operations and permissions.
+- `src/lib/commands.ts`: Implements the command handlers and shared path resolution (`src/lib/resolvePath.ts`).
+- `src/lib/terminalManager.ts`: Wires xterm.js to the command layer, including history, prompt management, and the boot sequence.
+- `src/components/TerminalView.tsx`: Client-side component that mounts the terminal, handles the modal, and converts markdown to HTML.
+- `src/components/PortfolioPreviewModal.tsx`: Mac-inspired modal for portfolio files.
 
-## Deploy on Vercel
+## Development Tips
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- The filesystem is persisted in IndexedDB when the browser supports it; use devtools to clear storage if you need a clean slate.
+- `npm run lint` keeps the codebase aligned with the project ESLint config.
