@@ -362,7 +362,7 @@ export class TerminalManager {
     await sleep(350);
     this.term.writeln("");
     this.term.writeln("Type 'help' to list available commands.");
-    this.term.writeln("Hint: try cat /READ_ME_FIRST.txt to find the portfolio.");
+    this.term.writeln("Hint: run openPortfolio to explore the portfolio overview." );
     await sleep(200);
   }
 }

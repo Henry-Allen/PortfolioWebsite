@@ -16,10 +16,9 @@ Visit http://localhost:3000 to launch the terminal. The boot sequence runs autom
 - `help` lists the available simulated commands.
 - Press Tab to autocomplete or list suggestions during navigation.
 - Portfolio previews can be closed from the red titlebar control or by clicking the shaded backdrop.
+- `openPortfolio` displays the entire portfolio overview (works from any directory).
 - `ls`, `cd`, `pwd`, `cat`, and `open` all support absolute paths, relative paths, `.`/`..`, and `~` expansion.
-- Navigate to the curated portfolio at `~/Desktop/portfolio` and use `open <file>.md` to reveal the Mac-style preview modal rendered from markdown.
 - Explore the simulated filesystem layout (system folders, applications, user directories). Non-portfolio files surface permission errors when opened.
-- `cat /READ_ME_FIRST.txt` hints at where the portfolio lives.
 
 ## Tech Stack
 

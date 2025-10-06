@@ -1,5 +1,6 @@
 import { INIT_SENTINEL } from "./seedData";
 import { resolvePath } from "./resolvePath";
+import { PORTFOLIO_MARKDOWN } from "./portfolioContent";
 import { Vfs } from "./vfs";
 
 export interface IO {
@@ -132,7 +133,12 @@ const help: Command = async (_, __, io) => {
   io.writeln("  cd [path]       - change directory");
   io.writeln("  pwd             - print the current directory");
   io.writeln("  cat <file>      - print file contents (where permitted)");
-  io.writeln("  open <file>     - open portfolio files in the preview window");
+  io.writeln("  open <file>     - open readable files in the preview window");
+  io.writeln("  openPortfolio   - launch the full portfolio overview");
+};
+
+const openPortfolio: Command = (_, context) => {
+  context.openPreview("portfolio.md", PORTFOLIO_MARKDOWN);
 };
 
 const open: Command = async (args, context, io) => {
@@ -169,5 +175,6 @@ export const commands: Record<string, Command> = {
   pwd,
   cat,
   open,
+  openPortfolio,
   help,
 };

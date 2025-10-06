@@ -4,7 +4,6 @@ import {
   FILES,
   HOME_DIR,
   INIT_SENTINEL,
-  PORTFOLIO_DIR,
   PREVIEWABLE_FILES,
   READABLE_FILES,
 } from "./seedData";
@@ -242,9 +241,6 @@ export class Vfs {
     return HOME_DIR;
   }
 
-  getPortfolioDir(): string {
-    return PORTFOLIO_DIR;
-  }
 }
 
 export const vfs = new Vfs();
