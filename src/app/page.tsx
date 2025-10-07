@@ -1,5 +1,3 @@
-export const dynamic = "force-dynamic";
-
 import { TerminalView } from "@/components/TerminalView";
 
 export default function Home() {

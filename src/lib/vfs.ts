@@ -33,8 +33,9 @@ async function loadBrowserFs(): Promise<BrowserFsModule> {
   if (typeof globalThis.self === "undefined") {
     (globalThis as unknown as { self: typeof globalThis }).self = globalThis;
   }
-  const browserFs = await import("browserfs");
-  browserFsInstance = browserFs.default as BrowserFsModule;
+  const mod = await import("browserfs");
+  const BrowserFS = ((mod as unknown as { default?: unknown })?.default ?? mod) as BrowserFsModule;
+  browserFsInstance = BrowserFS;
   return browserFsInstance;
 }
 

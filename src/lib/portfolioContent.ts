@@ -2,10 +2,10 @@ export const PORTFOLIO_MARKDOWN = `# William Henry Allen — Portfolio
 
 ## Projects
 - **Terminal Portfolio** — Cinematic, terminal-style portfolio that emulates a remote Mac shell experience.
-- **RV Scraping** — Web scraper for RV inventory data.
-- **Deploy Optimization** — imporoved Angular deployment times on aws by making use of docker to skip installing node_modules
-- **AI Automation** — made agents.md files and created scripts to auto run codex on jira tickets
-- **ShredForge**(in progress) — creating a real time guitar note detection and scoring software
+- **RV Scraping** — created a web scraper for RV inventory data.
+- **Deploy Optimization** — improved Angular deployment times on AWS by making use of docker to skip installing node_modules.
+- **AI Automation** — made agents.md files and created scripts to auto run codex on jira tickets.
+- **ShredForge**(in progress) — creating a real time guitar note detection and scoring software for college.
 
 ## Experience
 ### Intern Full Stack Engineer — Motomate123 (2021 – 2022)
