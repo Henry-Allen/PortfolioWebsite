@@ -1,29 +1,28 @@
-export const PORTFOLIO_MARKDOWN = `# Henry Allen — Portfolio
+export const PORTFOLIO_MARKDOWN = `# William Henry Allen — Portfolio
+
+## Projects
+- **Terminal Portfolio** — Cinematic, terminal-style portfolio that emulates a remote Mac shell experience.
+- **RV Scraping** — Web scraper for RV inventory data.
+- **Deploy Optimization** — imporoved Angular deployment times on aws by making use of docker to skip installing node_modules
+- **AI Automation** — made agents.md files and created scripts to auto run codex on jira tickets
+- **ShredForge**(in progress) — creating a real time guitar note detection and scoring software
+
+## Experience
+### Intern Full Stack Engineer — Motomate123 (2021 – 2022)
+- Learned the basics of Angular and Node.js and made simple html and css changes and imporvments to the website
+### Junior Full Stack Engineer — Motomate123 (2025 – Present)
+- Made more significant changes to the website and added new features like RV scraping and AI automation
 
 ## Skills
-- TypeScript, React, Next.js
-- Node.js, GraphQL, REST API design
+- TypeScript, JavaScript, HTML, CSS, SCSS, C++
+- Node.js, Angular
 - CSS architectures (Tailwind, CSS Modules), design systems
 - DevOps basics: Docker, CI/CD pipelines, monitoring
 - Product-focused: UX collaboration, rapid prototyping, storytelling
 
-## Experience
-### Senior Frontend Engineer — Arc Light Labs (2021 – Present)
-- Led the rebuild of the design system powering 12 products, cutting UI defect reports by 35%.
-- Delivered performance audits that reduced critical path JS by 40%.
-
-### Frontend Engineer — Signalwave (2018 – 2021)
-- Built real-time monitoring dashboards used by 4,000+ ops engineers.
-- Piloted accessibility initiatives that brought WCAG AA compliance across marketing web properties.
-
-## Projects
-- **Terminal Portfolio** — Cinematic, terminal-style portfolio that emulates a remote Mac shell experience.
-- **Storyboard** — Interactive story-pitch platform with collaborative feedback cycles for creative teams.
-- **Lighthouse Keeper** — Automation toolkit that wraps Lighthouse in polished reporting for non-technical stakeholders.
-
 ## Contact
-- Email: [henry@henryallen.dev](mailto:henry@henryallen.dev)
-- GitHub: [github.com/henryallen](https://github.com/henryallen)
-- LinkedIn: [in/henry-allen](https://www.linkedin.com/in/henry-allen/)
+- Email: [heman7557@gmail.com](mailto:heman7557@gmail.com)
+- GitHub: [github.com/Henry-Allen](https://github.com/Henry-Allen)
+- LinkedIn: [in/william-allen](https://www.linkedin.com/in/william-allen-b72b72387/)
 
 Let's build something cinematic together.`;
