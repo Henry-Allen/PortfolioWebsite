@@ -1,13 +1,13 @@
-import type { IDisposable } from "@xterm/xterm";
-import { Terminal } from "@xterm/xterm";
-import { commands, getCommand } from "./commands";
-import type { CommandContext, IO } from "./commands";
-import { resolvePath } from "./resolvePath";
-import { INIT_SENTINEL } from "./seedData";
-import { Vfs, vfs } from "./vfs";
+import type { IDisposable } from '@xterm/xterm';
+import { Terminal } from '@xterm/xterm';
+import { commands, getCommand } from './commands';
+import type { CommandContext, IO } from './commands';
+import { resolvePath } from './resolvePath';
+import { INIT_SENTINEL } from './seedData';
+import { Vfs, vfs } from './vfs';
 
-const PROMPT_SUFFIX = " $ ";
-const ROOT_DIR = "/";
+const PROMPT_SUFFIX = ' $ ';
+const ROOT_DIR = '/';
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -36,7 +36,7 @@ export class TerminalManager {
   private term: Terminal;
   private vfs: Vfs;
   private cwd: string = ROOT_DIR;
-  private buffer = "";
+  private buffer = '';
   private history: string[] = [];
   private historyIndex: number = 0;
   private dataDisposable: IDisposable | null = null;
@@ -70,7 +70,7 @@ export class TerminalManager {
   }
 
   private printPrompt(): void {
-    this.buffer = "";
+    this.buffer = '';
     this.historyIndex = this.history.length;
     this.term.write(`${this.cwd}${PROMPT_SUFFIX}`);
   }
@@ -78,7 +78,7 @@ export class TerminalManager {
   private setPromptLine(line: string): void {
     // Clear current line after prompt for history navigation
     const promptText = `${this.cwd}${PROMPT_SUFFIX}`;
-    const clearSequence = "\r" + " ".repeat(promptText.length + this.buffer.length) + "\r";
+    const clearSequence = '\r' + ' '.repeat(promptText.length + this.buffer.length) + '\r';
     this.term.write(clearSequence);
     this.term.write(promptText + line);
     this.buffer = line;
@@ -86,32 +86,32 @@ export class TerminalManager {
 
   private handleInput(data: string): void {
     switch (data) {
-      case "\u0003": // Ctrl+C
-        this.term.write("^C\r\n");
-        this.buffer = "";
+      case '\u0003': // Ctrl+C
+        this.term.write('^C\r\n');
+        this.buffer = '';
         this.printPrompt();
         break;
-      case "\r":
-      case "\n":
+      case '\r':
+      case '\n':
         this.executeCommand(this.buffer);
         break;
-      case "\u007F": // Backspace
+      case '\u007F': // Backspace
         if (this.buffer.length > 0) {
           this.buffer = this.buffer.slice(0, -1);
-          this.term.write("\b \b");
+          this.term.write('\b \b');
         }
         break;
-      case "\t": // Tab
+      case '\t': // Tab
         void this.handleTabCompletion();
         break;
-      case "\u001b[A": // Up arrow
+      case '\u001b[A': // Up arrow
         this.navigateHistory(-1);
         break;
-      case "\u001b[B": // Down arrow
+      case '\u001b[B': // Down arrow
         this.navigateHistory(1);
         break;
       default:
-        if (data.startsWith("\u001b")) {
+        if (data.startsWith('\u001b')) {
           // Ignore other control sequences
           return;
         }
@@ -125,7 +125,7 @@ export class TerminalManager {
     const originalBuffer = this.buffer;
     const tokens = tokenize(originalBuffer);
     const endsWithWhitespace = /\s$/.test(originalBuffer);
-    const fragment = endsWithWhitespace ? "" : tokens[tokens.length - 1] ?? "";
+    const fragment = endsWithWhitespace ? '' : tokens[tokens.length - 1] ?? '';
     const isCommandContext = tokens.length <= 1 && !endsWithWhitespace;
     const prefix = originalBuffer.slice(0, originalBuffer.length - fragment.length);
 
@@ -134,7 +134,7 @@ export class TerminalManager {
       completions = this.getCommandCompletions(fragment);
     } else {
       const commandRoot = tokens[0]?.toLowerCase();
-      const directoriesOnly = commandRoot === "cd";
+      const directoriesOnly = commandRoot === 'cd';
       completions = await this.getPathCompletions(fragment, { directoriesOnly });
     }
 
@@ -143,7 +143,7 @@ export class TerminalManager {
     }
 
     if (completions.length === 0) {
-      this.term.write("");
+      this.term.write('');
       return;
     }
 
@@ -151,17 +151,16 @@ export class TerminalManager {
       const completion = completions[0];
       let newBuffer = `${prefix}${completion}`;
       const needsTrailingSpace =
-        (isCommandContext && !newBuffer.endsWith(" ")) ||
-        (!isCommandContext && !completion.endsWith("/") && !newBuffer.endsWith(" "));
+        (isCommandContext && !newBuffer.endsWith(' ')) || (!isCommandContext && !completion.endsWith('/') && !newBuffer.endsWith(' '));
       if (needsTrailingSpace) {
-        newBuffer += " ";
+        newBuffer += ' ';
       }
       this.setPromptLine(newBuffer);
       return;
     }
 
     const formatted = this.formatCompletionList(completions);
-    this.term.write("\r\n" + formatted.replace(/\n/g, "\r\n") + "\r\n");
+    this.term.write('\r\n' + formatted.replace(/\n/g, '\r\n') + '\r\n');
     this.printPrompt();
     this.term.write(originalBuffer);
     this.buffer = originalBuffer;
@@ -175,32 +174,32 @@ export class TerminalManager {
   }
 
   private async getPathCompletions(fragment: string, options: { directoriesOnly: boolean } = { directoriesOnly: false }): Promise<string[]> {
-    if (fragment === "~") {
-      return ["~/"];
+    if (fragment === '~') {
+      return ['~/'];
     }
-    if (fragment === "..") {
-      return ["../"];
+    if (fragment === '..') {
+      return ['../'];
     }
-    if (fragment === ".") {
-      return ["./"];
+    if (fragment === '.') {
+      return ['./'];
     }
 
     const home = this.vfs.getHome();
-    let dirInput = "";
+    let dirInput = '';
     let partial = fragment;
 
-    if (fragment.endsWith("/")) {
+    if (fragment.endsWith('/')) {
       dirInput = fragment;
-      partial = "";
+      partial = '';
     } else {
-      const slashIndex = fragment.lastIndexOf("/");
+      const slashIndex = fragment.lastIndexOf('/');
       if (slashIndex >= 0) {
         dirInput = fragment.slice(0, slashIndex + 1);
         partial = fragment.slice(slashIndex + 1);
       }
     }
 
-    const dirForResolve = dirInput || (fragment.startsWith("/") ? "/" : ".");
+    const dirForResolve = dirInput || (fragment.startsWith('/') ? '/' : '.');
     let resolvedDir: string;
     try {
       resolvedDir = resolvePath(dirInput || dirForResolve, this.cwd, home);
@@ -216,13 +215,13 @@ export class TerminalManager {
     if (options.directoriesOnly) {
       const dirChecks = await Promise.all(
         entries.map(async (entry) => {
-          const fullPath = resolvedDir === "/" ? `/${entry}` : `${resolvedDir}/${entry}`;
+          const fullPath = resolvedDir === '/' ? `/${entry}` : `${resolvedDir}/${entry}`;
           return (await this.vfs.isDir(fullPath)) ? entry : null;
-        }),
+        })
       );
       entries = dirChecks.filter((entry): entry is string => entry !== null);
     }
-    const sentinelName = INIT_SENTINEL.split("/").pop();
+    const sentinelName = INIT_SENTINEL.split('/').pop();
     const suggestions: string[] = [];
     const partialLower = partial.toLowerCase();
 
@@ -233,9 +232,9 @@ export class TerminalManager {
       if (!entry.toLowerCase().startsWith(partialLower)) {
         continue;
       }
-      const fullPath = resolvedDir === "/" ? `/${entry}` : `${resolvedDir}/${entry}`;
+      const fullPath = resolvedDir === '/' ? `/${entry}` : `${resolvedDir}/${entry}`;
       const isDir = await this.vfs.isDir(fullPath);
-      suggestions.push(`${dirInput}${entry}${isDir ? "/" : ""}`);
+      suggestions.push(`${dirInput}${entry}${isDir ? '/' : ''}`);
     }
 
     suggestions.sort((a, b) => a.localeCompare(b));
@@ -244,7 +243,7 @@ export class TerminalManager {
 
   private formatCompletionList(items: string[]): string {
     if (items.length === 0) {
-      return "";
+      return '';
     }
 
     const sorted = [...items].sort((a, b) => a.localeCompare(b));
@@ -263,12 +262,12 @@ export class TerminalManager {
         }
         const value = sorted[index];
         const isLast = col === maxColumns - 1;
-        columns.push(isLast ? value : value.padEnd(columnWidth, " "));
+        columns.push(isLast ? value : value.padEnd(columnWidth, ' '));
       }
-      lines.push(columns.join("").trimEnd());
+      lines.push(columns.join('').trimEnd());
     }
 
-    return lines.join("\n");
+    return lines.join('\n');
   }
 
   private navigateHistory(delta: number): void {
@@ -276,17 +275,14 @@ export class TerminalManager {
       return;
     }
 
-    this.historyIndex = Math.min(
-      this.history.length,
-      Math.max(0, this.historyIndex + delta),
-    );
+    this.historyIndex = Math.min(this.history.length, Math.max(0, this.historyIndex + delta));
 
-    const entry = this.history[this.historyIndex] ?? "";
+    const entry = this.history[this.historyIndex] ?? '';
     this.setPromptLine(entry);
   }
 
   private async executeCommand(rawInput: string): Promise<void> {
-    this.term.write("\r\n");
+    this.term.write('\r\n');
     const input = rawInput.trim();
     if (input) {
       this.history.push(input);
@@ -295,7 +291,7 @@ export class TerminalManager {
       this.historyIndex = this.history.length;
     }
 
-    this.buffer = "";
+    this.buffer = '';
 
     if (!input) {
       this.printPrompt();
@@ -313,10 +309,10 @@ export class TerminalManager {
 
     const io: IO = {
       write: (text: string) => {
-        this.term.write(text.replace(/\n/g, "\r\n"));
+        this.term.write(text.replace(/\n/g, '\r\n'));
       },
-      writeln: (text = "") => {
-        const formatted = text.replace(/\n/g, "\r\n");
+      writeln: (text = '') => {
+        const formatted = text.replace(/\n/g, '\r\n');
         this.term.write(`${formatted}\r\n`);
       },
     };
@@ -341,11 +337,7 @@ export class TerminalManager {
 
   private async runBootSequence(): Promise<void> {
     this.booting = true;
-    const lines = [
-      "[ OK ] Initializing network...",
-      "[ OK ] Mounting remote volume...",
-      "[ OK ] Authenticating...",
-    ];
+    const lines = ['[ OK ] Initializing network...', '[ OK ] Mounting remote volume...', '[ OK ] Authenticating...'];
 
     for (const line of lines) {
       this.term.writeln(line);
@@ -355,22 +347,51 @@ export class TerminalManager {
     const steps = 20;
     for (let i = 0; i <= steps; i += 1) {
       const progress = Math.round((i / steps) * 100);
-      const filled = "#".repeat(i);
-      const empty = " ".repeat(steps - i);
-      this.term.write(`\rBoot progress: [${filled}${empty}] ${progress}%`);
+      const filled = '#'.repeat(i);
+      const empty = ' '.repeat(steps - i);
+      this.term.write(`\rLoading MotoMate internship projects: [${filled}${empty}] ${progress}%`);
       await sleep(70);
     }
-    this.term.write("\rBoot progress: [####################] 100%\r\n");
+    this.term.write('\rLoading MotoMate internship projects: [####################] 100%\r\n');
     await sleep(350);
-    this.term.writeln("Connected to remote host: portfolio@henry.local");
+
+    for (let i = 0; i <= steps; i += 1) {
+      const progress = Math.round((i / steps) * 100);
+      const filled = '#'.repeat(i);
+      const empty = ' '.repeat(steps - i);
+      this.term.write(`\rLoading AI agent projects: [${filled}${empty}] ${progress}%`);
+      await sleep(70);
+    }
+    this.term.write('\rLoading AI agent projects: [####################] 100%\r\n');
     await sleep(350);
-    this.term.writeln("");
+
+    for (let i = 0; i <= steps; i += 1) {
+      const progress = Math.round((i / steps) * 100);
+      const filled = '#'.repeat(i);
+      const empty = ' '.repeat(steps - i);
+      this.term.write(`\rLoading Scraping projects: [${filled}${empty}] ${progress}%`);
+      await sleep(70);
+    }
+    this.term.write('\rLoading Scraping projects: [####################] 100%\r\n');
+    await sleep(350);
+
+    for (let i = 0; i <= steps; i += 1) {
+      const progress = Math.round((i / steps) * 100);
+      const filled = '#'.repeat(i);
+      const empty = ' '.repeat(steps - i);
+      this.term.write(`\rBoot progress: [${filled}${empty}] ${progress}%`);
+      await sleep(35);
+    }
+    this.term.write('\rBoot progress: [####################] 100%\r\n');
+    await sleep(350);
+
+    this.term.writeln('Connected to remote host: portfolio@henry.local');
+    await sleep(350);
+    this.term.writeln('');
     this.term.writeln("Type 'help' to list available commands.");
-    this.term.writeln("Hint: run openPortfolio to explore the portfolio overview." );
+    this.term.writeln(`Hint: run \x1b[32mopenPortfolio\x1b[0m to explore the portfolio overview.`);
     await sleep(200);
   }
 }
 
-export const terminalManagerFactory = (
-  terminal: Terminal,
-): TerminalManager => new TerminalManager(terminal, vfs);
+export const terminalManagerFactory = (terminal: Terminal): TerminalManager => new TerminalManager(terminal, vfs);
