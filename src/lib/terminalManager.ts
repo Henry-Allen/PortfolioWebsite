@@ -32,10 +32,6 @@ function tokenize(input: string): string[] {
   return tokens;
 }
 
-interface TerminalManagerOptions {
-  onPreview: (path: string, content: string) => void;
-}
-
 export class TerminalManager {
   private term: Terminal;
   private vfs: Vfs;
@@ -45,12 +41,10 @@ export class TerminalManager {
   private historyIndex: number = 0;
   private dataDisposable: IDisposable | null = null;
   private booting = true;
-  private readonly options: TerminalManagerOptions;
 
-  constructor(term: Terminal, filesystem: Vfs = vfs, options: TerminalManagerOptions) {
+  constructor(term: Terminal, filesystem: Vfs = vfs) {
     this.term = term;
     this.vfs = filesystem;
-    this.options = options;
   }
 
   async start(): Promise<void> {
@@ -321,9 +315,6 @@ export class TerminalManager {
       setCwd: (nextPath: string) => {
         this.cwd = nextPath;
       },
-      openPreview: (path: string, content: string) => {
-        this.options.onPreview(path, content);
-      },
     };
 
     try {
@@ -369,5 +360,4 @@ export class TerminalManager {
 
 export const terminalManagerFactory = (
   terminal: Terminal,
-  options: TerminalManagerOptions,
-): TerminalManager => new TerminalManager(terminal, vfs, options);
+): TerminalManager => new TerminalManager(terminal, vfs);
