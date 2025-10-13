@@ -168,13 +168,58 @@ export class Vfs {
     await this.ready;
   }
 
-  async exists(path: string): Promise<boolean> {
-    await this.waitForReady();
-    return this.existsDirect(path);
+  private readdirRaw(path: string): Promise<string[]> {
+    return new Promise((resolve, reject) => {
+      this.fs!.readdir(path, (err: NodeJS.ErrnoException | null, files: string[]) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(files);
+      });
+    });
   }
 
-  async stat(path: string): Promise<VfsStats> {
+  private async normalizePathCase(path: string): Promise<string | null> {
+    if (!this.fs) {
+      throw new Error("Filesystem not initialized");
+    }
+
+    if (path === "/") {
+      return "/";
+    }
+
+    const segments = path.split("/").filter(Boolean);
+    let current = "/";
+
+    for (const segment of segments) {
+      let entries: string[];
+      try {
+        entries = await this.readdirRaw(current);
+      } catch {
+        return null;
+      }
+
+      const match =
+        entries.find((entry) => entry === segment) ??
+        entries.find((entry) => entry.toLowerCase() === segment.toLowerCase());
+
+      if (!match) {
+        return null;
+      }
+
+      current = current === "/" ? `/${match}` : `${current}/${match}`;
+    }
+
+    return current;
+  }
+
+  async normalizePath(path: string): Promise<string | null> {
     await this.waitForReady();
+    return this.normalizePathCase(path);
+  }
+
+  private statRaw(path: string): Promise<VfsStats> {
     return new Promise((resolve, reject) => {
       this.fs!.stat(path, (err: NodeJS.ErrnoException | null, stats: VfsStats) => {
         if (err) {
@@ -184,6 +229,23 @@ export class Vfs {
         resolve(stats);
       });
     });
+  }
+
+  async exists(path: string): Promise<boolean> {
+    await this.waitForReady();
+    const normalized = await this.normalizePathCase(path);
+    return normalized !== null;
+  }
+
+  async stat(path: string): Promise<VfsStats> {
+    await this.waitForReady();
+    const normalized = await this.normalizePathCase(path);
+    if (!normalized) {
+      throw Object.assign(new Error(`ENOENT: no such file or directory, stat '${path}'`), {
+        code: "ENOENT",
+      });
+    }
+    return this.statRaw(normalized);
   }
 
   async isDir(path: string): Promise<boolean> {
@@ -206,8 +268,14 @@ export class Vfs {
 
   async readFile(path: string): Promise<string> {
     await this.waitForReady();
+    const normalized = await this.normalizePathCase(path);
+    if (!normalized) {
+      throw Object.assign(new Error(`ENOENT: no such file or directory, open '${path}'`), {
+        code: "ENOENT",
+      });
+    }
     return new Promise((resolve, reject) => {
-      this.fs!.readFile(path, "utf8", (err: NodeJS.ErrnoException | null, data: string) => {
+      this.fs!.readFile(normalized, "utf8", (err: NodeJS.ErrnoException | null, data: string) => {
         if (err) {
           reject(err);
           return;
@@ -219,15 +287,13 @@ export class Vfs {
 
   async readdir(path: string): Promise<string[]> {
     await this.waitForReady();
-    return new Promise((resolve, reject) => {
-      this.fs!.readdir(path, (err: NodeJS.ErrnoException | null, files: string[]) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve(files);
+    const normalized = await this.normalizePathCase(path);
+    if (!normalized) {
+      throw Object.assign(new Error(`ENOENT: no such file or directory, scandir '${path}'`), {
+        code: "ENOENT",
       });
-    });
+    }
+    return this.readdirRaw(normalized);
   }
 
   isReadable(path: string): boolean {

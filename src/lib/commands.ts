@@ -57,18 +57,20 @@ const ls: Command = async (args, context, io) => {
   }
 
   if (await context.vfs.isFile(targetPath)) {
-    const segments = targetPath.split("/");
+    const actualPath = await context.vfs.normalizePath(targetPath);
+    const segments = (actualPath ?? targetPath).split("/");
     io.writeln(segments.at(-1) ?? targetPath);
     return;
   }
 
+  const basePath = (await context.vfs.normalizePath(targetPath)) ?? targetPath;
   const entries = await context.vfs.readdir(targetPath);
   const sentinelName = INIT_SENTINEL.split("/").pop();
   const visibleEntries = sentinelName ? entries.filter((entry) => entry !== sentinelName) : entries;
 
   const decorated = await Promise.all(
     visibleEntries.map(async (entry) => {
-      const fullPath = targetPath === "/" ? `/${entry}` : `${targetPath}/${entry}`;
+      const fullPath = basePath === "/" ? `/${entry}` : `${basePath}/${entry}`;
       const isDir = await context.vfs.isDir(fullPath);
       return isDir ? `${entry}/` : entry;
     }),
@@ -82,17 +84,18 @@ const cd: Command = async (args, context, io) => {
   const targetInput = args[0];
   const nextPath = resolvePath(targetInput ?? context.home, context.cwd, context.home);
 
-  if (!(await context.vfs.exists(nextPath))) {
+  const resolvedPath = await context.vfs.normalizePath(nextPath);
+  if (!resolvedPath) {
     io.writeln(`cd: no such file or directory: ${targetInput ?? context.home}`);
     return;
   }
 
-  if (!(await context.vfs.isDir(nextPath))) {
+  if (!(await context.vfs.isDir(resolvedPath))) {
     io.writeln(`cd: not a directory: ${targetInput ?? nextPath}`);
     return;
   }
 
-  context.setCwd(nextPath);
+  context.setCwd(resolvedPath);
 };
 
 const pwd: Command = (_, context, io) => {
@@ -108,22 +111,23 @@ const cat: Command = async (args, context, io) => {
 
   const targetPath = resolvePath(fileInput, context.cwd, context.home);
 
-  if (!(await context.vfs.exists(targetPath))) {
+  const normalizedPath = await context.vfs.normalizePath(targetPath);
+  if (!normalizedPath) {
     io.writeln(`cat: no such file or directory: ${fileInput}`);
     return;
   }
 
-  if (!(await context.vfs.isFile(targetPath))) {
+  if (!(await context.vfs.isFile(normalizedPath))) {
     io.writeln(`cat: ${fileInput}: Is a directory`);
     return;
   }
 
-  if (!context.vfs.isReadable(targetPath)) {
+  if (!context.vfs.isReadable(normalizedPath)) {
     io.writeln("cat: permission denied");
     return;
   }
 
-  const content = await context.vfs.readFile(targetPath);
+  const content = await context.vfs.readFile(normalizedPath);
   io.writeln(content);
 };
 
@@ -150,26 +154,27 @@ const open: Command = async (args, context, io) => {
 
   const targetPath = resolvePath(fileInput, context.cwd, context.home);
 
-  if (!(await context.vfs.exists(targetPath))) {
+  const normalizedPath = await context.vfs.normalizePath(targetPath);
+  if (!normalizedPath) {
     io.writeln(`open: no such file or directory: ${fileInput}`);
     return;
   }
 
-  if (!(await context.vfs.isFile(targetPath))) {
+  if (!(await context.vfs.isFile(normalizedPath))) {
     io.writeln(`open: not a file: ${fileInput}`);
     return;
   }
 
-  if (!context.vfs.isPreviewable(targetPath)) {
+  if (!context.vfs.isPreviewable(normalizedPath)) {
     io.writeln("open: permission denied");
     return;
   }
 
-  const content = await context.vfs.readFile(targetPath);
-  context.openPreview(targetPath, content);
+  const content = await context.vfs.readFile(normalizedPath);
+  context.openPreview(normalizedPath, content);
 };
 
-export const commands: Record<string, Command> = {
+const commandHandlers: Record<string, Command> = {
   ls,
   cd,
   pwd,
@@ -178,3 +183,14 @@ export const commands: Record<string, Command> = {
   openPortfolio,
   help,
 };
+
+export function getCommand(name: string): Command | undefined {
+  const lower = name.toLowerCase();
+  return commandLookup[lower];
+}
+
+export const commands = commandHandlers;
+
+const commandLookup: Record<string, Command> = Object.fromEntries(
+  Object.entries(commandHandlers).map(([commandName, handler]) => [commandName.toLowerCase(), handler]),
+) as Record<string, Command>;

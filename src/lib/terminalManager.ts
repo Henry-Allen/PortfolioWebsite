@@ -1,7 +1,7 @@
 import type { IDisposable } from "@xterm/xterm";
 import { Terminal } from "@xterm/xterm";
-import { commands } from "./commands";
-import type { Command, CommandContext, IO } from "./commands";
+import { commands, getCommand } from "./commands";
+import type { CommandContext, IO } from "./commands";
 import { resolvePath } from "./resolvePath";
 import { INIT_SENTINEL } from "./seedData";
 import { Vfs, vfs } from "./vfs";
@@ -139,7 +139,9 @@ export class TerminalManager {
     if (isCommandContext) {
       completions = this.getCommandCompletions(fragment);
     } else {
-      completions = await this.getPathCompletions(fragment);
+      const commandRoot = tokens[0]?.toLowerCase();
+      const directoriesOnly = commandRoot === "cd";
+      completions = await this.getPathCompletions(fragment, { directoriesOnly });
     }
 
     if (this.buffer !== originalBuffer) {
@@ -172,12 +174,13 @@ export class TerminalManager {
   }
 
   private getCommandCompletions(fragment: string): string[] {
+    const lowerFragment = fragment.toLowerCase();
     return Object.keys(commands)
-      .filter((name) => name.startsWith(fragment))
+      .filter((name) => name.toLowerCase().startsWith(lowerFragment))
       .sort((a, b) => a.localeCompare(b));
   }
 
-  private async getPathCompletions(fragment: string): Promise<string[]> {
+  private async getPathCompletions(fragment: string, options: { directoriesOnly: boolean } = { directoriesOnly: false }): Promise<string[]> {
     if (fragment === "~") {
       return ["~/"];
     }
@@ -215,15 +218,25 @@ export class TerminalManager {
       return [];
     }
 
-    const entries = await this.vfs.readdir(resolvedDir);
+    let entries = await this.vfs.readdir(resolvedDir);
+    if (options.directoriesOnly) {
+      const dirChecks = await Promise.all(
+        entries.map(async (entry) => {
+          const fullPath = resolvedDir === "/" ? `/${entry}` : `${resolvedDir}/${entry}`;
+          return (await this.vfs.isDir(fullPath)) ? entry : null;
+        }),
+      );
+      entries = dirChecks.filter((entry): entry is string => entry !== null);
+    }
     const sentinelName = INIT_SENTINEL.split("/").pop();
     const suggestions: string[] = [];
+    const partialLower = partial.toLowerCase();
 
     for (const entry of entries) {
       if (sentinelName && entry === sentinelName) {
         continue;
       }
-      if (!entry.startsWith(partial)) {
+      if (!entry.toLowerCase().startsWith(partialLower)) {
         continue;
       }
       const fullPath = resolvedDir === "/" ? `/${entry}` : `${resolvedDir}/${entry}`;
@@ -296,7 +309,7 @@ export class TerminalManager {
     }
 
     const [commandName, ...args] = tokenize(input);
-    const command = (commands as Record<string, Command | undefined>)[commandName];
+    const command = getCommand(commandName);
 
     if (!command) {
       this.term.writeln(`${commandName}: command not found`);
