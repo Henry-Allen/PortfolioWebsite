@@ -1,7 +1,6 @@
-import { INIT_SENTINEL } from "./seedData";
-import { resolvePath } from "./resolvePath";
-import { PORTFOLIO_MARKDOWN } from "./portfolioContent";
-import { Vfs } from "./vfs";
+import { INIT_SENTINEL } from './seedData';
+import { resolvePath } from './resolvePath';
+import { Vfs } from './vfs';
 
 export interface IO {
   write: (text: string) => void;
@@ -13,14 +12,13 @@ export interface CommandContext {
   home: string;
   vfs: Vfs;
   setCwd: (nextPath: string) => void;
-  openPreview: (path: string, content: string) => void;
 }
 
 export type Command = (args: string[], context: CommandContext, io: IO) => Promise<void> | void;
 
 function formatColumns(items: string[]): string {
   if (items.length === 0) {
-    return "";
+    return '';
   }
 
   const longest = items.reduce((max, item) => Math.max(max, item.length), 0);
@@ -30,7 +28,7 @@ function formatColumns(items: string[]): string {
   const lines: string[] = [];
 
   for (let row = 0; row < rows; row += 1) {
-    let line = "";
+    let line = '';
     for (let col = 0; col < maxColumns; col += 1) {
       const index = row + col * rows;
       if (index >= items.length) {
@@ -39,12 +37,12 @@ function formatColumns(items: string[]): string {
 
       const value = items[index];
       const isLast = col === maxColumns - 1;
-      line += isLast ? value : value.padEnd(columnWidth, " ");
+      line += isLast ? value : value.padEnd(columnWidth, ' ');
     }
     lines.push(line.trimEnd());
   }
 
-  return lines.join("\n");
+  return lines.join('\n');
 }
 
 const ls: Command = async (args, context, io) => {
@@ -57,23 +55,22 @@ const ls: Command = async (args, context, io) => {
   }
 
   if (await context.vfs.isFile(targetPath)) {
-    const actualPath = await context.vfs.normalizePath(targetPath);
-    const segments = (actualPath ?? targetPath).split("/");
+    const segments = targetPath.split('/');
     io.writeln(segments.at(-1) ?? targetPath);
     return;
   }
 
   const basePath = (await context.vfs.normalizePath(targetPath)) ?? targetPath;
   const entries = await context.vfs.readdir(targetPath);
-  const sentinelName = INIT_SENTINEL.split("/").pop();
+  const sentinelName = INIT_SENTINEL.split('/').pop();
   const visibleEntries = sentinelName ? entries.filter((entry) => entry !== sentinelName) : entries;
 
   const decorated = await Promise.all(
     visibleEntries.map(async (entry) => {
-      const fullPath = basePath === "/" ? `/${entry}` : `${basePath}/${entry}`;
+      const fullPath = targetPath === '/' ? `/${entry}` : `${targetPath}/${entry}`;
       const isDir = await context.vfs.isDir(fullPath);
       return isDir ? `${entry}/` : entry;
-    }),
+    })
   );
 
   const output = formatColumns(decorated.sort((a, b) => a.localeCompare(b)));
@@ -105,7 +102,7 @@ const pwd: Command = (_, context, io) => {
 const cat: Command = async (args, context, io) => {
   const fileInput = args[0];
   if (!fileInput) {
-    io.writeln("cat: missing file operand");
+    io.writeln('cat: missing file operand');
     return;
   }
 
@@ -122,8 +119,8 @@ const cat: Command = async (args, context, io) => {
     return;
   }
 
-  if (!context.vfs.isReadable(normalizedPath)) {
-    io.writeln("cat: permission denied");
+  if (!context.vfs.isReadable(targetPath)) {
+    io.writeln('cat: permission denied');
     return;
   }
 
@@ -132,46 +129,36 @@ const cat: Command = async (args, context, io) => {
 };
 
 const help: Command = async (_, __, io) => {
-  io.writeln("Available commands:");
-  io.writeln("  ls [path]       - list directory contents");
-  io.writeln("  cd [path]       - change directory");
-  io.writeln("  pwd             - print the current directory");
-  io.writeln("  cat <file>      - print file contents (where permitted)");
-  io.writeln("  open <file>     - open readable files in the preview window");
-  io.writeln("  openPortfolio   - launch the full portfolio overview");
+  io.writeln('Available commands:');
+  io.writeln('  ls [path]       - list directory contents');
+  io.writeln('  cd [path]       - change directory');
+  io.writeln('  pwd             - print the current directory');
+  io.writeln('  cat <file>      - print file contents (where permitted)');
+  io.writeln('  openPortfolio   - launch the full portfolio overview');
 };
 
-const openPortfolio: Command = (_, context) => {
-  context.openPreview("portfolio.md", PORTFOLIO_MARKDOWN);
-};
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
-const open: Command = async (args, context, io) => {
-  const fileInput = args[0];
-  if (!fileInput) {
-    io.writeln("open: missing file operand");
-    return;
+const openPortfolio: Command = async (_, __, io) => {
+  io.writeln('Fetching portfolio metadata...');
+  await sleep(400);
+  io.writeln('Resolving dependencies...');
+  await sleep(500);
+  for (let i = 1; i <= 5; i += 1) {
+    io.writeln(`Downloading assets (${i}/5)...`);
+    await sleep(300);
   }
-
-  const targetPath = resolvePath(fileInput, context.cwd, context.home);
-
-  const normalizedPath = await context.vfs.normalizePath(targetPath);
-  if (!normalizedPath) {
-    io.writeln(`open: no such file or directory: ${fileInput}`);
-    return;
+  io.writeln('Verifying integrity...');
+  await sleep(350);
+  io.writeln('Installing...');
+  await sleep(400);
+  io.writeln('Launch: opening portfolio in a new tab.');
+  await sleep(1000);
+  if (typeof window !== 'undefined') {
+    window.open('/portfolio', '_blank');
   }
-
-  if (!(await context.vfs.isFile(normalizedPath))) {
-    io.writeln(`open: not a file: ${fileInput}`);
-    return;
-  }
-
-  if (!context.vfs.isPreviewable(normalizedPath)) {
-    io.writeln("open: permission denied");
-    return;
-  }
-
-  const content = await context.vfs.readFile(normalizedPath);
-  context.openPreview(normalizedPath, content);
 };
 
 const commandHandlers: Record<string, Command> = {
@@ -179,7 +166,6 @@ const commandHandlers: Record<string, Command> = {
   cd,
   pwd,
   cat,
-  open,
   openPortfolio,
   help,
 };
@@ -192,5 +178,5 @@ export function getCommand(name: string): Command | undefined {
 export const commands = commandHandlers;
 
 const commandLookup: Record<string, Command> = Object.fromEntries(
-  Object.entries(commandHandlers).map(([commandName, handler]) => [commandName.toLowerCase(), handler]),
+  Object.entries(commandHandlers).map(([commandName, handler]) => [commandName.toLowerCase(), handler])
 ) as Record<string, Command>;
