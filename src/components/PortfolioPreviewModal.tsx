@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+
 interface PortfolioPreviewModalProps {
   isOpen: boolean;
   title: string;
@@ -13,6 +15,15 @@ export function PortfolioPreviewModal({
   contentHtml,
   onClose,
 }: PortfolioPreviewModalProps) {
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isOpen, onClose]);
+
   if (!isOpen) {
     return null;
   }
@@ -23,6 +34,7 @@ export function PortfolioPreviewModal({
     }
   };
 
+
   return (
     <div
       className="fixed inset-0 z-30 flex items-center justify-center bg-black/60"
@@ -30,29 +42,23 @@ export function PortfolioPreviewModal({
       role="presentation"
     >
       <div
-        className="relative w-[min(90vw,700px)] max-h-[80vh] overflow-hidden rounded-xl border border-black/40 bg-[#f5f5f5] shadow-2xl"
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        className="relative w-[min(90vw,520px)] max-h-[80vh] overflow-hidden rounded-xl border border-white/10 bg-white/5 p-6 text-white shadow-2xl backdrop-blur"
         onClick={(event) => event.stopPropagation()}
       >
-        <header className="flex items-center justify-between bg-[#e6e6e6] px-4 py-2 text-sm font-medium text-black">
-          <div className="flex items-center gap-3">
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={onClose}
-                className="h-3 w-3 rounded-full border border-[#d44] bg-[#ff5f57]"
-                aria-label="Close preview"
-              />
-              <span className="h-3 w-3 rounded-full bg-[#febb2e]" aria-hidden />
-              <span className="h-3 w-3 rounded-full bg-[#28c940]" aria-hidden />
-            </div>
-            <span className="truncate">{title}</span>
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold tracking-tight text-white/90">{title}</h3>
+          <div
+            className="max-h-[60vh] overflow-y-auto text-sm text-white/80 pr-4 -mr-4"
+            style={{ scrollbarGutter: "stable" }}
+          >
+            <article
+              className="leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: contentHtml }}
+            />
           </div>
-        </header>
-        <div className="max-h-[70vh] overflow-y-auto bg-white px-6 py-6 text-black">
-          <article
-            className="markdown-content text-sm leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: contentHtml }}
-          />
         </div>
       </div>
     </div>

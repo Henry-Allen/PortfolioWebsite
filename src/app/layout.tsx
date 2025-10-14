@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import SkipToPortfolioButton from "../components/SkipToPortfolioButton";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -28,14 +28,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-white`}
       >
-        <div className="fixed right-4 top-4 z-50">
-          <Link
-            href="/portfolio"
-            className="rounded-md bg-white/10 px-3 py-2 text-sm font-medium text-white backdrop-blur hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/40"
-          >
-            Skip to Portfolio
-          </Link>
-        </div>
+        <SkipToPortfolioButton />
         {children}
       </body>
     </html>

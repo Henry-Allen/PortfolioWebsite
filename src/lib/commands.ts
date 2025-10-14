@@ -60,7 +60,6 @@ const ls: Command = async (args, context, io) => {
     return;
   }
 
-  const basePath = (await context.vfs.normalizePath(targetPath)) ?? targetPath;
   const entries = await context.vfs.readdir(targetPath);
   const sentinelName = INIT_SENTINEL.split('/').pop();
   const visibleEntries = sentinelName ? entries.filter((entry) => entry !== sentinelName) : entries;
