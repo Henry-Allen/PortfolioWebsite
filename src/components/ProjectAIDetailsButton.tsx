@@ -1,9 +1,20 @@
 "use client";
 
 import { cloneElement, isValidElement, useState } from "react";
+import type { KeyboardEvent, MouseEvent, ReactElement } from "react";
 import { PortfolioPreviewModal } from "./PortfolioPreviewModal";
 
-export default function ProjectAIDetailsButton({ children }: { children?: React.ReactElement<any> }) {
+type ClickableChildProps = {
+  className?: string;
+  onClick?: (e: MouseEvent) => void;
+  onKeyDown?: (e: KeyboardEvent) => void;
+  tabIndex?: number;
+  role?: string;
+};
+
+type ClickableChild = ReactElement<ClickableChildProps>;
+
+export default function ProjectAIDetailsButton({ children }: { children?: ClickableChild }) {
   const [open, setOpen] = useState(false);
 
   const contentHtml = `
@@ -38,15 +49,15 @@ export default function ProjectAIDetailsButton({ children }: { children?: React.
 
   if (children && isValidElement(children)) {
     const onOpen = () => setOpen(true);
-    const origProps = (children.props ?? {}) as any;
-    const trigger = cloneElement(children as any, {
+    const origProps = (children.props ?? {}) as ClickableChildProps;
+    const trigger = cloneElement<ClickableChildProps>(children as ClickableChild, {
       role: 'button',
       tabIndex: 0,
-      onClick: (e: React.MouseEvent) => {
+      onClick: (e) => {
         origProps.onClick?.(e);
         onOpen();
       },
-      onKeyDown: (e: React.KeyboardEvent) => {
+      onKeyDown: (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           onOpen();
@@ -54,7 +65,7 @@ export default function ProjectAIDetailsButton({ children }: { children?: React.
         origProps.onKeyDown?.(e);
       },
       className: `${origProps.className ?? ''} cursor-pointer`.trim(),
-    } as any);
+    });
 
     return (
       <>
