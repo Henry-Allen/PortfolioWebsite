@@ -111,34 +111,40 @@ export default function PortfolioPage() {
               <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">CI/CD</span>
             </div>
           </Card>
-          <Card>
-            <h3 className="text-lg font-semibold flex items-center gap-2">AI Automation <Image src="/motomate.png" alt="Motomate logo" width={16} height={16} className="h-[1em] w-auto" /></h3>
-            <p className="mt-2 text-sm text-white/70">
-              Authored agents docs and created scripts to auto‑run codex on Jira tickets.
-            </p>
-            <div className="mt-3">
-              <ProjectAIDetailsButton />
-            </div>
-            <div className="mt-4 flex flex-wrap gap-2 text-xs text-white/60">
-              <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">LLM</span>
-              <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">Automation</span>
-              <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">Jira</span>
-            </div>
-          </Card>
-          <Card>
-            <h3 className="text-lg font-semibold flex items-center gap-2">ShredForge (WIP) <Image src="/csusm.png" alt="CSUSM logo" width={16} height={16} className="h-[1em] w-auto" /></h3>
-            <p className="mt-2 text-sm text-white/70">
-              Real‑time guitar note detection and scoring app for performance practice.
-            </p>
-            <div className="mt-3">
-              <ProjectShredForgeDetailsButton />
-            </div>
-            <div className="mt-4 flex flex-wrap gap-2 text-xs text-white/60">
-              <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">Java</span>
-              <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">JavaFX</span>
-              <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">DSP</span>
-            </div>
-          </Card>
+          <ProjectAIDetailsButton>
+            <Card>
+              <div className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-medium text-white/85 ring-1 ring-white/20 backdrop-blur-sm group-hover:bg-white/15">
+                <svg aria-hidden viewBox="0 0 24 24" className="h-3.5 w-3.5 text-white/80"><path fill="currentColor" d="M12 5c5 0 9 4.5 10 7-1 2.5-5 7-10 7S3 14.5 2 12c1-2.5 5-7 10-7Zm0 2c-3.866 0-7 3.582-7 5s3.134 5 7 5 7-3.582 7-5-3.134-5-7-5Zm0 2.5A2.5 2.5 0 1 1 9.5 12 2.5 2.5 0 0 1 12 9.5Z"/></svg>
+                <span>View details</span>
+              </div>
+              <h3 className="text-lg font-semibold flex items-center gap-2">AI Automation <Image src="/motomate.png" alt="Motomate logo" width={16} height={16} className="h-[1em] w-auto" /></h3>
+              <p className="mt-2 text-sm text-white/70">
+                Authored agents docs and created scripts to auto‑run codex on Jira tickets.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2 text-xs text-white/60">
+                <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">LLM</span>
+                <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">Automation</span>
+                <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">Jira</span>
+              </div>
+            </Card>
+          </ProjectAIDetailsButton>
+          <ProjectShredForgeDetailsButton>
+            <Card>
+              <div className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-medium text-white/85 ring-1 ring-white/20 backdrop-blur-sm group-hover:bg-white/15">
+                <svg aria-hidden viewBox="0 0 24 24" className="h-3.5 w-3.5 text-white/80"><path fill="currentColor" d="M12 5c5 0 9 4.5 10 7-1 2.5-5 7-10 7S3 14.5 2 12c1-2.5 5-7 10-7Zm0 2c-3.866 0-7 3.582-7 5s3.134 5 7 5 7-3.582 7-5-3.134-5-7-5Zm0 2.5A2.5 2.5 0 1 1 9.5 12 2.5 2.5 0 0 1 12 9.5Z"/></svg>
+                <span>View details</span>
+              </div>
+              <h3 className="text-lg font-semibold flex items-center gap-2">ShredForge (WIP) <Image src="/csusm.png" alt="CSUSM logo" width={16} height={16} className="h-[1em] w-auto" /></h3>
+              <p className="mt-2 text-sm text-white/70">
+                Real‑time guitar note detection and scoring app for performance practice.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2 text-xs text-white/60">
+                <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">Java</span>
+                <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">JavaFX</span>
+                <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">DSP</span>
+              </div>
+            </Card>
+          </ProjectShredForgeDetailsButton>
         </div>
       </Section>
     </main>

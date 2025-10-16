@@ -344,46 +344,80 @@ export class TerminalManager {
       await sleep(500);
     }
 
+    // Disable line wrap to ensure updates stay on one line on narrow/mobile screens
+    this.term.write('\x1b[?7l');
+
     const steps = 20;
-    for (let i = 0; i <= steps; i += 1) {
-      const progress = Math.round((i / steps) * 100);
-      const filled = '#'.repeat(i);
-      const empty = ' '.repeat(steps - i);
-      this.term.write(`\rLoading MotoMate internship projects: [${filled}${empty}] ${progress}%`);
-      await sleep(70);
+    {
+      const label = 'Loading MotoMate projects: ';
+      for (let i = 0; i <= steps; i += 1) {
+        const progress = Math.round((i / steps) * 100);
+        const reserved = 2 /*[]*/ + 1 /*space*/ + 4; /*min % digits*/
+        const barWidth = Math.max(0, Math.min(20, (this.term.cols ?? 80) - (label.length + reserved)));
+        const filledCount = Math.round((i / steps) * barWidth);
+        const filled = '#'.repeat(filledCount);
+        const empty = ' '.repeat(Math.max(0, barWidth - filledCount));
+        this.term.write(`\x1b[2K\x1b[G${label}[${filled}${empty}] ${progress}%`);
+        await sleep(70);
+      }
+      const finalBarWidth = Math.max(0, Math.min(20, (this.term.cols ?? 80) - (label.length + 2 + 1 + 4)));
+      this.term.write(`\x1b[2K\x1b[G${label}[${'#'.repeat(finalBarWidth)}] 100%\r\n`);
     }
-    this.term.write('\rLoading MotoMate internship projects: [####################] 100%\r\n');
     await sleep(350);
 
-    for (let i = 0; i <= steps; i += 1) {
-      const progress = Math.round((i / steps) * 100);
-      const filled = '#'.repeat(i);
-      const empty = ' '.repeat(steps - i);
-      this.term.write(`\rLoading AI agent projects: [${filled}${empty}] ${progress}%`);
-      await sleep(70);
+    {
+      const label = 'Loading AI agent projects: ';
+      for (let i = 0; i <= steps; i += 1) {
+        const progress = Math.round((i / steps) * 100);
+        const reserved = 2 + 1 + 4;
+        const barWidth = Math.max(0, Math.min(20, (this.term.cols ?? 80) - (label.length + reserved)));
+        const filledCount = Math.round((i / steps) * barWidth);
+        const filled = '#'.repeat(filledCount);
+        const empty = ' '.repeat(Math.max(0, barWidth - filledCount));
+        this.term.write(`\x1b[2K\x1b[G${label}[${filled}${empty}] ${progress}%`);
+        await sleep(70);
+      }
+      const finalBarWidth = Math.max(0, Math.min(20, (this.term.cols ?? 80) - (label.length + 2 + 1 + 4)));
+      this.term.write(`\x1b[2K\x1b[G${label}[${'#'.repeat(finalBarWidth)}] 100%\r\n`);
     }
-    this.term.write('\rLoading AI agent projects: [####################] 100%\r\n');
     await sleep(350);
 
-    for (let i = 0; i <= steps; i += 1) {
-      const progress = Math.round((i / steps) * 100);
-      const filled = '#'.repeat(i);
-      const empty = ' '.repeat(steps - i);
-      this.term.write(`\rLoading Scraping projects: [${filled}${empty}] ${progress}%`);
-      await sleep(70);
+    {
+      const label = 'Loading Scraping projects: ';
+      for (let i = 0; i <= steps; i += 1) {
+        const progress = Math.round((i / steps) * 100);
+        const reserved = 2 + 1 + 4;
+        const barWidth = Math.max(0, Math.min(20, (this.term.cols ?? 80) - (label.length + reserved)));
+        const filledCount = Math.round((i / steps) * barWidth);
+        const filled = '#'.repeat(filledCount);
+        const empty = ' '.repeat(Math.max(0, barWidth - filledCount));
+        this.term.write(`\x1b[2K\x1b[G${label}[${filled}${empty}] ${progress}%`);
+        await sleep(70);
+      }
+      const finalBarWidth = Math.max(0, Math.min(20, (this.term.cols ?? 80) - (label.length + 2 + 1 + 4)));
+      this.term.write(`\x1b[2K\x1b[G${label}[${'#'.repeat(finalBarWidth)}] 100%\r\n`);
     }
-    this.term.write('\rLoading Scraping projects: [####################] 100%\r\n');
     await sleep(350);
 
-    for (let i = 0; i <= steps; i += 1) {
-      const progress = Math.round((i / steps) * 100);
-      const filled = '#'.repeat(i);
-      const empty = ' '.repeat(steps - i);
-      this.term.write(`\rBoot progress: [${filled}${empty}] ${progress}%`);
-      await sleep(35);
+    {
+      const label = 'Boot progress: ';
+      for (let i = 0; i <= steps; i += 1) {
+        const progress = Math.round((i / steps) * 100);
+        const reserved = 2 + 1 + 4;
+        const barWidth = Math.max(0, Math.min(20, (this.term.cols ?? 80) - (label.length + reserved)));
+        const filledCount = Math.round((i / steps) * barWidth);
+        const filled = '#'.repeat(filledCount);
+        const empty = ' '.repeat(Math.max(0, barWidth - filledCount));
+        this.term.write(`\x1b[2K\x1b[G${label}[${filled}${empty}] ${progress}%`);
+        await sleep(35);
+      }
+      const finalBarWidth = Math.max(0, Math.min(20, (this.term.cols ?? 80) - (label.length + 2 + 1 + 4)));
+      this.term.write(`\x1b[2K\x1b[G${label}[${'#'.repeat(finalBarWidth)}] 100%\r\n`);
     }
-    this.term.write('\rBoot progress: [####################] 100%\r\n');
     await sleep(350);
+
+    // Re-enable line wrap after boot sequence
+    this.term.write('\x1b[?7h');
 
     this.term.writeln('Connected to remote host: portfolio@henry.local');
     await sleep(350);

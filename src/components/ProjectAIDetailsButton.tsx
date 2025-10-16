@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { cloneElement, isValidElement, useState } from "react";
 import { PortfolioPreviewModal } from "./PortfolioPreviewModal";
 
-export default function ProjectAIDetailsButton() {
+export default function ProjectAIDetailsButton({ children }: { children?: React.ReactElement<any> }) {
   const [open, setOpen] = useState(false);
 
   const contentHtml = `
@@ -35,6 +35,39 @@ export default function ProjectAIDetailsButton() {
       </p>
     </div>
   `;
+
+  if (children && isValidElement(children)) {
+    const onOpen = () => setOpen(true);
+    const origProps = (children.props ?? {}) as any;
+    const trigger = cloneElement(children as any, {
+      role: 'button',
+      tabIndex: 0,
+      onClick: (e: React.MouseEvent) => {
+        origProps.onClick?.(e);
+        onOpen();
+      },
+      onKeyDown: (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onOpen();
+        }
+        origProps.onKeyDown?.(e);
+      },
+      className: `${origProps.className ?? ''} cursor-pointer`.trim(),
+    } as any);
+
+    return (
+      <>
+        {trigger}
+        <PortfolioPreviewModal
+          isOpen={open}
+          title="AI Automation — Details"
+          contentHtml={contentHtml}
+          onClose={() => setOpen(false)}
+        />
+      </>
+    );
+  }
 
   return (
     <>

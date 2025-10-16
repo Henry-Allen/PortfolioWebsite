@@ -155,8 +155,17 @@ const openPortfolio: Command = async (_, __, io) => {
   await sleep(400);
   io.writeln('Launch: opening portfolio in a new tab.');
   await sleep(1000);
+
+  // Try to open immediately to leverage the direct user gesture (prevents mobile popup blockers)
+  let openedNewTab = false;
   if (typeof window !== 'undefined') {
-    window.open('/portfolio', '_blank');
+    const newWin = window.open('/portfolio', '_blank');
+    openedNewTab = !!newWin;
+  }
+
+  // If popup was blocked, gracefully fall back to same-tab navigation
+  if (!openedNewTab && typeof window !== 'undefined') {
+    window.location.href = '/portfolio';
   }
 };
 

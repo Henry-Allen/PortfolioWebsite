@@ -16,9 +16,10 @@ export default function SkipToPortfolioButton() {
         href="/portfolio"
         target="_blank"
         rel="noopener noreferrer"
-        className="rounded-md bg-white/10 px-4 py-2.5 text-base font-medium text-white backdrop-blur hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/40"
+        className="relative rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 px-5 py-3 text-base font-semibold text-white shadow-lg ring-2 ring-white/30 transition-transform duration-200 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-white/50"
       >
-        Skip to Portfolio
+        <span aria-hidden className="pointer-events-none absolute -inset-2 rounded-full bg-emerald-400/30 blur-md"></span>
+        <span className="relative">Skip to Portfolio</span>
       </Link>
     </div>
   );
