@@ -2,6 +2,7 @@ import ContactInfoButton from "../../components/ContactInfoButton";
 import ProjectAIDetailsButton from "../../components/ProjectAIDetailsButton";
 import ProjectShredForgeDetailsButton from "../../components/ProjectShredForgeDetailsButton";
 import Image from "next/image";
+import ProjectTerminalDetailsButton from "../../components/ProjectTerminalDetailsButton";
 export const metadata = {
   title: "Henry Allen — Portfolio",
   description: "A modern, thoughtfully designed developer portfolio.",
@@ -48,7 +49,7 @@ export default function PortfolioPage() {
               width={112}
               height={112}
               priority
-              className="h-28 w-28 rounded-full ring-1 ring-white/20 object-cover"
+              className="h-28 w-28 rounded-full object-cover"
             />
           </div>
           <p className="max-w-2xl text-pretty text-white/70">
@@ -81,17 +82,6 @@ export default function PortfolioPage() {
       <Section title="Projects">
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <Card>
-            <h3 className="text-lg font-semibold">Terminal Portfolio</h3>
-            <p className="mt-2 text-sm text-white/70">
-              Cinematic, terminal‑style portfolio that emulates a remote Mac shell experience.
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2 text-xs text-white/60">
-              <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">Next.js</span>
-              <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">TypeScript</span>
-              <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">xterm.js</span>
-            </div>
-          </Card>
-          <Card>
             <h3 className="text-lg font-semibold flex items-center gap-2">RV Scraping <Image src="/motomate.png" alt="Motomate logo" width={16} height={16} className="h-[1em] w-auto" /></h3>
             <p className="mt-2 text-sm text-white/70">Web scraper for RV inventory data aggregation.</p>
             <div className="mt-4 flex flex-wrap gap-2 text-xs text-white/60">
@@ -108,7 +98,7 @@ export default function PortfolioPage() {
             <div className="mt-4 flex flex-wrap gap-2 text-xs text-white/60">
               <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">Docker</span>
               <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">AWS</span>
-              <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">CI/CD</span>
+              <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">DevOps</span>
             </div>
           </Card>
           <ProjectAIDetailsButton>
@@ -145,6 +135,23 @@ export default function PortfolioPage() {
               </div>
             </Card>
           </ProjectShredForgeDetailsButton>
+          <ProjectTerminalDetailsButton>
+            <Card>
+              <div className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-medium text-white/85 ring-1 ring-white/20 backdrop-blur-sm group-hover:bg-white/15">
+                <svg aria-hidden viewBox="0 0 24 24" className="h-3.5 w-3.5 text-white/80"><path fill="currentColor" d="M12 5c5 0 9 4.5 10 7-1 2.5-5 7-10 7S3 14.5 2 12c1-2.5 5-7 10-7Zm0 2c-3.866 0-7 3.582-7 5s3.134 5 7 5 7-3.582 7-5-3.134-5-7-5Zm0 2.5A2.5 2.5 0 1 1 9.5 12 2.5 2.5 0 0 1 12 9.5Z"/></svg>
+                <span>View details</span>
+              </div>
+              <h3 className="text-lg font-semibold">Terminal Portfolio</h3>
+              <p className="mt-2 text-sm text-white/70">
+                Cinematic, terminal‑style portfolio that emulates a remote Mac shell experience.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2 text-xs text-white/60">
+                <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">Next.js</span>
+                <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">TypeScript</span>
+                <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">xterm.js</span>
+              </div>
+            </Card>
+          </ProjectTerminalDetailsButton>
         </div>
       </Section>
     </main>

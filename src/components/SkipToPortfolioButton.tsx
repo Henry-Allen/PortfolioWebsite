@@ -11,7 +11,7 @@ export default function SkipToPortfolioButton() {
   }
 
   return (
-    <div className="fixed right-4 top-4 z-50">
+    <div className="fixed right-6 top-8 z-50">
       <Link
         href="/portfolio"
         target="_blank"

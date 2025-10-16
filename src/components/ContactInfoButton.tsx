@@ -16,9 +16,9 @@ export default function ContactInfoButton({ email, phone }: ContactInfoButtonPro
       <div style="display:grid; gap:12px; font-size:14px; color:rgba(255,255,255,0.85);">
         <div>
           <div style="font-size:12px; color:rgba(255,255,255,0.6); margin-bottom:4px;">Email</div>
-          <div style="color:rgba(255,255,255,0.85);">${email}</div>
+          <a href="mailto:${email}" style="color:rgba(255,255,255,0.85); text-decoration:underline;">${email}</a>
         </div>
-        ${phone ? `<div><div style="font-size:12px; color:rgba(255,255,255,0.6); margin-bottom:4px;">Phone</div><div style=\"color:rgba(255,255,255,0.85);\">${phone}</div></div>` : ""}
+        ${phone ? `<div><div style="font-size:12px; color:rgba(255,255,255,0.6); margin-bottom:4px;">Phone</div><a href=\"tel:${phone}\" style=\"color:rgba(255,255,255,0.85); text-decoration:underline;\">${phone}</a></div>` : ""}
       </div>
     </div>
   `;

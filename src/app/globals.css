@@ -23,10 +23,14 @@ body {
 
 .xterm .xterm-viewport {
   overflow: hidden;
+  /* Hide scrollbars cross-browser to avoid double scrollbars during render */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
 }
 
-.xterm .xterm-screen {
-  padding: 16px;
+.xterm .xterm-viewport::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .markdown-content {

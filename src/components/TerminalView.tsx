@@ -75,7 +75,7 @@ export function TerminalView() {
   }, []);
 
   return (
-    <div className="relative h-full w-full">
+    <div className="relative h-full w-full overflow-hidden p-4">
       <div ref={containerRef} className="h-full w-full" />
     </div>
   );
