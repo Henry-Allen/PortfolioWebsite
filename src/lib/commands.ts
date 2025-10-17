@@ -80,6 +80,8 @@ const resume: Command = async (_, __, io) => {
   const label = 'Opening resume: ';
   const steps = 20;
   const barWidth = 20;
+  // Disable line wrap to keep progress updates on one line (mobile fix)
+  io.write('\x1b[?7l');
   for (let i = 0; i <= steps; i += 1) {
     const progress = Math.round((i / steps) * 100);
     const filledCount = Math.round((i / steps) * barWidth);
@@ -89,6 +91,8 @@ const resume: Command = async (_, __, io) => {
     await sleep(50);
   }
   await sleep(500);
+  // Re-enable line wrap and move to the next line
+  io.write('\x1b[?7h');
   io.writeln('');
 
   // Attempt to open in new tab from direct user gesture context
