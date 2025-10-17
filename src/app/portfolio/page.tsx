@@ -95,7 +95,7 @@ export default function PortfolioPage() {
               <div className="mt-4 flex flex-wrap gap-2 text-xs text-white/60">
                 <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">Node.js</span>
                 <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">TypeScript</span>
-                <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">Automation</span>
+                <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">Scraping</span>
               </div>
             </Card>
           </ProjectRVScrapingDetailsButton>
@@ -127,7 +127,7 @@ export default function PortfolioPage() {
                 Authored agents docs and created scripts to auto‑run codex on Jira tickets.
               </p>
               <div className="mt-4 flex flex-wrap gap-2 text-xs text-white/60">
-                <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">LLM</span>
+                <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">AI</span>
                 <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">Automation</span>
                 <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">Jira</span>
               </div>
