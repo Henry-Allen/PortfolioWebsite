@@ -12,6 +12,7 @@ export interface CommandContext {
   home: string;
   vfs: Vfs;
   setCwd: (nextPath: string) => void;
+  cols?: number;
 }
 
 export type Command = (args: string[], context: CommandContext, io: IO) => Promise<void> | void;
@@ -76,10 +77,12 @@ const ls: Command = async (args, context, io) => {
   io.writeln(output);
 };
 
-const resume: Command = async (_, __, io) => {
+const resume: Command = async (_, context, io) => {
   const label = 'Opening resume: ';
   const steps = 20;
-  const barWidth = 20;
+  const reserved = 2 /*[]*/ + 1 /*space*/ + 4; /*min % digits*/
+  const cols = context.cols ?? 80;
+  const barWidth = Math.max(0, Math.min(20, cols - (label.length + reserved)));
   // Disable line wrap to keep progress updates on one line (mobile fix)
   io.write('\x1b[?7l');
   for (let i = 0; i <= steps; i += 1) {

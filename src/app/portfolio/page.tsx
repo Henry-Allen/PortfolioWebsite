@@ -68,7 +68,7 @@ export default function PortfolioPage() {
             >
               LinkedIn
             </a>
-            <ContactInfoButton email="heman7557@gmail.com" phone="(720) 496 7648" />
+            <ContactInfoButton email="henryallen@gmail.com" phone="(720) 496 7648" />
             <a
               href="/resume.pdf"
               target="_blank"

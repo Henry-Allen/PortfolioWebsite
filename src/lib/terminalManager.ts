@@ -324,6 +324,7 @@ export class TerminalManager {
       setCwd: (nextPath: string) => {
         this.cwd = nextPath;
       },
+      cols: this.term.cols ?? 80,
     };
 
     try {
