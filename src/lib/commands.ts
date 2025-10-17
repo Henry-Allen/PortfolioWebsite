@@ -76,6 +76,33 @@ const ls: Command = async (args, context, io) => {
   io.writeln(output);
 };
 
+const resume: Command = async (_, __, io) => {
+  const label = 'Opening resume: ';
+  const steps = 20;
+  const barWidth = 20;
+  for (let i = 0; i <= steps; i += 1) {
+    const progress = Math.round((i / steps) * 100);
+    const filledCount = Math.round((i / steps) * barWidth);
+    const filled = '#'.repeat(filledCount);
+    const empty = ' '.repeat(Math.max(0, barWidth - filledCount));
+    io.write(`\x1b[2K\x1b[G${label}[${filled}${empty}] ${progress}%`);
+    await sleep(50);
+  }
+  await sleep(500);
+  io.writeln('');
+
+  // Attempt to open in new tab from direct user gesture context
+  let opened = false;
+  if (typeof window !== 'undefined') {
+    const w = window.open('/resume.pdf', '_blank');
+    opened = !!w;
+  }
+  // Fallback to same-tab navigation if blocked
+  if (!opened && typeof window !== 'undefined') {
+    window.location.href = '/resume.pdf';
+  }
+};
+
 const cd: Command = async (args, context, io) => {
   const targetInput = args[0];
   const nextPath = resolvePath(targetInput ?? context.home, context.cwd, context.home);
@@ -134,6 +161,7 @@ const help: Command = async (_, __, io) => {
   io.writeln('  pwd             - print the current directory');
   io.writeln('  cat <file>      - print file contents (where permitted)');
   io.writeln('  openPortfolio   - launch the full portfolio overview');
+  io.writeln('  resume          - open resume PDF in a new tab');
 };
 
 function sleep(ms: number) {
@@ -175,6 +203,7 @@ const commandHandlers: Record<string, Command> = {
   pwd,
   cat,
   openPortfolio,
+  resume,
   help,
 };
 

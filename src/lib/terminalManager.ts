@@ -424,6 +424,7 @@ export class TerminalManager {
     this.term.writeln('');
     this.term.writeln("Type 'help' to list available commands.");
     this.term.writeln(`Hint: run \x1b[32mopenPortfolio\x1b[0m to explore the portfolio overview.`);
+    this.term.writeln(`Hint: or run \x1b[32mresume\x1b[0m to open the resume.`);
     await sleep(200);
   }
 }
