@@ -368,6 +368,17 @@ export class TerminalManager {
       return;
     }
 
+    const finale = document.createElement('div');
+    finale.className = 'konami-overlay__message';
+    overlay.appendChild(finale);
+
+    const finaleLines = ['gotcha, thanks for the free captcha', 'now no bot detector will ever catch me!'];
+    for (const line of finaleLines) {
+      await this.typeLine(finale, line);
+      await sleep(700);
+    }
+
+    await sleep(1200);
     await this.releaseKonami(overlay);
   }
 
