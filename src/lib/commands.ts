@@ -46,6 +46,11 @@ function formatColumns(items: string[]): string {
   return lines.join('\n');
 }
 
+let clearUsed = false;
+let helpInvocationCount = 0;
+let showHiddenEnabled = false;
+let cachedAsciiArt: string | null | undefined;
+
 const ls: Command = async (args, context, io) => {
   const targetInput = args[0] ?? context.cwd;
   const targetPath = resolvePath(targetInput, context.cwd, context.home);
@@ -63,7 +68,11 @@ const ls: Command = async (args, context, io) => {
 
   const entries = await context.vfs.readdir(targetPath);
   const sentinelName = INIT_SENTINEL.split('/').pop();
-  const visibleEntries = sentinelName ? entries.filter((entry) => entry !== sentinelName) : entries;
+  let visibleEntries = sentinelName ? entries.filter((entry) => entry !== sentinelName) : entries;
+
+  if (!showHiddenEnabled) {
+    visibleEntries = visibleEntries.filter((entry) => !entry.startsWith('.'));
+  }
 
   const decorated = await Promise.all(
     visibleEntries.map(async (entry) => {
@@ -157,11 +166,35 @@ const cat: Command = async (args, context, io) => {
     return;
   }
 
+  if (normalizedPath === '/.secrets/ascii.txt') {
+    const art = await getAsciiArt();
+    if (art === null) {
+      io.writeln('ASCII art currently unavailable.');
+      return;
+    }
+    const lines = art.split(/\r?\n/);
+    for (const line of lines) {
+      io.writeln(line);
+      await sleep(60);
+    }
+    return;
+  }
+
   const content = await context.vfs.readFile(normalizedPath);
   io.writeln(content);
 };
 
+const clear: Command = async (_, __, io) => {
+  if (!clearUsed) {
+    clearUsed = true;
+    io.writeln('Screen already spotless ✨');
+    return;
+  }
+  io.write('\x1b[2J\x1b[H');
+};
+
 const help: Command = async (_, __, io) => {
+  helpInvocationCount += 1;
   io.writeln('Available commands:');
   io.writeln('  ls [path]       - list directory contents');
   io.writeln('  cd [path]       - change directory');
@@ -169,11 +202,111 @@ const help: Command = async (_, __, io) => {
   io.writeln('  cat <file>      - print file contents (where permitted)');
   io.writeln('  openPortfolio   - launch the full portfolio overview');
   io.writeln('  resume          - open resume PDF in a new tab');
+  io.writeln('  clear           - clear the terminal (or try)');
+  io.writeln('  run <file>      - attempt to run a script');
+  io.writeln('  showHidden      - reveal hidden files');
+  io.writeln('  self-destruct   - do you really want to?');
+  if (helpInvocationCount >= 3) {
+    io.writeln("You sure you don't want to just email me?");
+  }
 };
+
+async function getAsciiArt(): Promise<string | null> {
+  if (cachedAsciiArt !== undefined) {
+    return cachedAsciiArt;
+  }
+
+  if (typeof window === 'undefined') {
+    cachedAsciiArt = null;
+    return null;
+  }
+
+  try {
+    const response = await fetch('/ascii-art.txt');
+    if (!response.ok) {
+      cachedAsciiArt = null;
+      return null;
+    }
+    const art = await response.text();
+    cachedAsciiArt = art;
+    return art;
+  } catch {
+    cachedAsciiArt = null;
+    return null;
+  }
+}
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+const selfDestruct: Command = async (_, __, io) => {
+  io.writeln('Initiating self-destruct sequence...');
+  await sleep(350);
+  for (let i = 3; i >= 1; i -= 1) {
+    io.write('\x1b[2K\x1b[G');
+    io.write(`T-minus ${i}...`);
+    await sleep(600);
+    io.write('\r');
+  }
+  io.write('\x1b[2K\x1b[G');
+  const offsets = [0, 3, 1, 4, 2, 0];
+  for (const offset of offsets) {
+    io.write('\x1b[2K\x1b[G');
+    if (offset > 0) {
+      io.write(`\x1b[${offset}C`);
+    }
+    io.write('💥 BOOM! 💥');
+    io.write('\r');
+    await sleep(90);
+  }
+  io.writeln('');
+  await sleep(200);
+  io.write('\x1b[2J\x1b[H');
+};
+
+const showHidden: Command = async (_, __, io) => {
+  if (showHiddenEnabled) {
+    io.writeln('Hidden files are already visible.');
+    return;
+  }
+  showHiddenEnabled = true;
+  io.writeln('Hidden files revealed. Try ls again.');
+};
+
+const run: Command = async (args, context, io) => {
+  const scriptInput = args[0];
+  if (!scriptInput) {
+    io.writeln('run: missing script name');
+    return;
+  }
+
+  let resolvedPath: string;
+  try {
+    resolvedPath = resolvePath(scriptInput, context.cwd, context.home);
+  } catch {
+    io.writeln(`run: ${scriptInput}: invalid path`);
+    return;
+  }
+
+  const normalizedPath = await context.vfs.normalizePath(resolvedPath);
+  if (!normalizedPath) {
+    io.writeln(`run: ${scriptInput}: not found`);
+    return;
+  }
+
+  if (!(await context.vfs.isFile(normalizedPath))) {
+    io.writeln(`run: ${scriptInput}: not a file`);
+    return;
+  }
+
+  if (normalizedPath.startsWith('/games/')) {
+    io.writeln('...just kidding (but I might actually build it someday).');
+    return;
+  }
+
+  io.writeln(`run: ${scriptInput}: execution not supported`);
+};
 
 const openPortfolio: Command = async (_, __, io) => {
   io.writeln('Fetching portfolio metadata...');
@@ -209,9 +342,13 @@ const commandHandlers: Record<string, Command> = {
   cd,
   pwd,
   cat,
-  openPortfolio,
+  clear,
+  showHidden,
+  run,
   resume,
+  openPortfolio,
   help,
+  'self-destruct': selfDestruct,
 };
 
 export function getCommand(name: string): Command | undefined {
@@ -221,6 +358,10 @@ export function getCommand(name: string): Command | undefined {
 
 export const commands = commandHandlers;
 
-const commandLookup: Record<string, Command> = Object.fromEntries(
-  Object.entries(commandHandlers).map(([commandName, handler]) => [commandName.toLowerCase(), handler])
-) as Record<string, Command>;
+const commandLookupEntries = Object.entries(commandHandlers).map(([commandName, handler]) => [
+  commandName.toLowerCase(),
+  handler,
+]);
+commandLookupEntries.push(['selfdestruct', selfDestruct]);
+
+const commandLookup: Record<string, Command> = Object.fromEntries(commandLookupEntries) as Record<string, Command>;

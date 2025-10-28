@@ -6,6 +6,61 @@ import { resolvePath } from './resolvePath';
 import { INIT_SENTINEL } from './seedData';
 import { Vfs, vfs } from './vfs';
 
+type GrecaptchaRenderParameters = {
+  sitekey: string;
+  callback: (token: string) => void;
+  theme?: 'light' | 'dark';
+  size?: 'compact' | 'normal';
+};
+
+type Grecaptcha = {
+  render: (container: HTMLElement, parameters: GrecaptchaRenderParameters) => number;
+  reset: (opt_widgetId?: number) => void;
+  ready?: (callback: () => void) => void;
+};
+
+declare global {
+  interface Window {
+    grecaptcha?: Grecaptcha;
+  }
+}
+
+const KONAMI_SEQUENCE = ['UP', 'UP', 'DOWN', 'DOWN', 'LEFT', 'RIGHT', 'LEFT', 'RIGHT', 'B', 'A'] as const;
+const RECAPTCHA_SITE_KEY = '6LdMb_orAAAAAMQAt2IqQCD3tsv4C-q1nXp3tpm8';
+
+let recaptchaPromise: Promise<Grecaptcha | null> | null = null;
+
+async function loadRecaptcha(): Promise<Grecaptcha | null> {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  if (window.grecaptcha) {
+    return window.grecaptcha;
+  }
+
+  if (recaptchaPromise) {
+    return recaptchaPromise;
+  }
+
+  recaptchaPromise = new Promise((resolve) => {
+    const script = document.createElement('script');
+    script.src = 'https://www.google.com/recaptcha/api.js?render=explicit';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      resolve(window.grecaptcha ?? null);
+    };
+    script.onerror = () => {
+      resolve(null);
+    };
+    const target = document.body ?? document.head ?? document.documentElement;
+    target.appendChild(script);
+  });
+
+  return recaptchaPromise;
+}
+
 const PROMPT_SUFFIX = ' $ ';
 const ROOT_DIR = '/';
 
@@ -41,6 +96,11 @@ export class TerminalManager {
   private historyIndex: number = 0;
   private dataDisposable: IDisposable | null = null;
   private booting = true;
+  private locked = false;
+  private konamiIndex = 0;
+  private overlay: HTMLElement | null = null;
+  private captchaWidgetId: number | null = null;
+  private readonly konamiSequence = KONAMI_SEQUENCE;
 
   constructor(term: Terminal, filesystem: Vfs = vfs) {
     this.term = term;
@@ -57,6 +117,9 @@ export class TerminalManager {
 
   dispose(): void {
     this.dataDisposable?.dispose();
+    this.overlay?.remove();
+    this.overlay = null;
+    this.captchaWidgetId = null;
   }
 
   private attachInput(): void {
@@ -84,7 +147,72 @@ export class TerminalManager {
     this.buffer = line;
   }
 
+  private trackKonami(input: string): boolean {
+    const token = this.mapKonamiToken(input);
+    if (!token) {
+      this.konamiIndex = 0;
+      return false;
+    }
+
+    const expected = this.konamiSequence[this.konamiIndex];
+    if (token === expected) {
+      this.konamiIndex += 1;
+      const completed = this.konamiIndex === this.konamiSequence.length;
+      if (completed) {
+        this.konamiIndex = 0;
+        void this.triggerKonamiSequence();
+        return true;
+      }
+      if (token === 'B' || token === 'A') {
+        return true;
+      }
+      return this.konamiIndex > 1;
+    }
+
+    if (token === this.konamiSequence[0]) {
+      this.konamiIndex = 1;
+      return false;
+    }
+
+    this.konamiIndex = 0;
+    return false;
+  }
+
+  private mapKonamiToken(input: string): (typeof KONAMI_SEQUENCE)[number] | null {
+    switch (input) {
+      case '\u001b[A':
+        return 'UP';
+      case '\u001b[B':
+        return 'DOWN';
+      case '\u001b[D':
+        return 'LEFT';
+      case '\u001b[C':
+        return 'RIGHT';
+      default: {
+        if (input.length === 1) {
+          const lower = input.toLowerCase();
+          if (lower === 'b') {
+            return 'B';
+          }
+          if (lower === 'a') {
+            return 'A';
+          }
+        }
+        return null;
+      }
+    }
+  }
+
   private handleInput(data: string): void {
+    if (this.locked) {
+      return;
+    }
+
+    const consumedByKonami = this.trackKonami(data);
+    if (consumedByKonami) {
+      return;
+    }
+
     switch (data) {
       case '\u0003': // Ctrl+C
         this.term.write('^C\r\n');
@@ -119,6 +247,142 @@ export class TerminalManager {
         this.term.write(data);
         break;
     }
+  }
+
+  private async triggerKonamiSequence(): Promise<void> {
+    if (this.locked) {
+      return;
+    }
+
+    this.locked = true;
+    this.buffer = '';
+    this.historyIndex = this.history.length;
+    this.term.write('\x1b[2J\x1b[H');
+    this.term.write('\x1b[?25l');
+
+    const overlay = this.createOverlay();
+    if (!overlay) {
+      this.term.write('Konami sequence activated, but display overlay failed.\r\n');
+      this.term.write('\x1b[?25h');
+      this.locked = false;
+      this.printPrompt();
+      return;
+    }
+
+    const message = document.createElement('div');
+    message.className = 'konami-overlay__message';
+    overlay.appendChild(message);
+
+    const lines = ['So you found my secret', 'not many make it this far', "hope you're ready for a real challenge"];
+    for (const line of lines) {
+      await this.typeLine(message, line);
+      await sleep(700);
+    }
+
+    await sleep(3000);
+    await this.presentCaptcha(overlay);
+  }
+
+  private createOverlay(): HTMLElement | null {
+    if (typeof window === 'undefined') {
+      return null;
+    }
+
+    const element = this.term.element;
+    const parent = element?.parentElement;
+    if (!parent) {
+      return null;
+    }
+
+    const computed = window.getComputedStyle(parent);
+    if (computed.position === 'static') {
+      parent.style.position = 'relative';
+    }
+
+    const overlay = document.createElement('div');
+    overlay.className = 'konami-overlay';
+    parent.appendChild(overlay);
+    this.overlay = overlay;
+
+    requestAnimationFrame(() => {
+      overlay.classList.add('konami-overlay--visible');
+    });
+
+    return overlay;
+  }
+
+  private async typeLine(target: HTMLElement, text: string): Promise<void> {
+    target.textContent = '';
+    for (const char of text) {
+      target.textContent += char;
+      await sleep(65 + Math.random() * 55);
+    }
+  }
+
+  private async presentCaptcha(overlay: HTMLElement): Promise<void> {
+    const prompt = document.createElement('div');
+    prompt.className = 'konami-overlay__prompt';
+    prompt.textContent = 'Click the checkbox to prove you are human:';
+    overlay.appendChild(prompt);
+
+    const captchaContainer = document.createElement('div');
+    captchaContainer.className = 'konami-overlay__captcha';
+    overlay.appendChild(captchaContainer);
+
+    const grecaptcha = await loadRecaptcha();
+    if (!grecaptcha) {
+      captchaContainer.textContent = 'CAPTCHA failed to load. Returning to terminal...';
+      await sleep(2000);
+      await this.releaseKonami(overlay);
+      return;
+    }
+
+    let rendered = false;
+    await new Promise<void>((resolve) => {
+      const render = () => {
+        try {
+          this.captchaWidgetId = grecaptcha.render(captchaContainer, {
+            sitekey: RECAPTCHA_SITE_KEY,
+            callback: () => {
+              resolve();
+            },
+            theme: 'dark',
+          });
+          rendered = true;
+        } catch (error) {
+          console.error('reCAPTCHA render failed', error);
+          resolve();
+        }
+      };
+      if (grecaptcha.ready) {
+        grecaptcha.ready(render);
+      } else {
+        render();
+      }
+    });
+
+    if (!rendered) {
+      captchaContainer.textContent = 'CAPTCHA failed to render. Returning to terminal...';
+      await sleep(2000);
+      await this.releaseKonami(overlay);
+      return;
+    }
+
+    await this.releaseKonami(overlay);
+  }
+
+  private async releaseKonami(overlay: HTMLElement): Promise<void> {
+    overlay.classList.remove('konami-overlay--visible');
+    await sleep(350);
+    overlay.remove();
+    this.overlay = null;
+    this.captchaWidgetId = null;
+    this.locked = false;
+    this.konamiIndex = 0;
+    this.term.write('\x1b[2J\x1b[H');
+    this.term.write('\x1b[?25h');
+    this.printPrompt();
+    this.term.focus();
   }
 
   private async handleTabCompletion(): Promise<void> {

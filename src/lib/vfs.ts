@@ -94,19 +94,26 @@ export class Vfs {
 
     const alreadySeeded = await this.existsDirect(INIT_SENTINEL);
     if (alreadySeeded) {
+      await this.ensureLatestSeed(false);
       return;
     }
 
+    await this.ensureLatestSeed(true);
+    await this.writeFile(INIT_SENTINEL, "initialized");
+  }
+
+  private async ensureLatestSeed(overwriteFiles: boolean): Promise<void> {
     for (const dir of DIRECTORIES) {
       await this.ensureDir(dir);
     }
 
     const entries = Object.entries(FILES);
     for (const [path, content] of entries) {
-      await this.writeFile(path, content);
+      const exists = await this.existsDirect(path);
+      if (!exists || overwriteFiles) {
+        await this.writeFile(path, content);
+      }
     }
-
-    await this.writeFile(INIT_SENTINEL, "initialized");
   }
 
   private ensureDir(path: string): Promise<void> {
